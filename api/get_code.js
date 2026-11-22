@@ -15,8 +15,19 @@ export default async function handler(req, res) {
     .eq('site_key', site_key)
     .single();
 
-  if (error || !data || !data.is_active) {
-    return res.status(403).json({ error: 'Ключ не найден или аренда окончена' });
+  // Если произошла ошибка при запросе к базе — показываем её!
+  if (error) {
+    return res.status(500).json({ error: "ОШИБКА БАЗЫ: " + error.message });
+  }
+
+  // Если данных нет — значит ключа реально нет
+  if (!data) {
+    return res.status(403).json({ error: 'Ключ не найден' });
+  }
+
+  // Если аренда выключена
+  if (!data.is_active) {
+    return res.status(403).json({ error: 'Аренда окончена (is_active = false)' });
   }
 
   if (new Date(data.expires_at) < new Date()) {
