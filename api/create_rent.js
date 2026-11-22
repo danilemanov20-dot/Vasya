@@ -8,9 +8,10 @@ export default async function handler(req, res) {
   const { site_key, totp_secret, expires_at } = req.body;
   if (!site_key || !totp_secret || !expires_at) return res.status(400).json({ error: 'Missing fields' });
 
-  const { error } = await supabase.from('rentals').insert([
+  // ВМЕСТО insert ИСПОЛЬЗУЕМ upsert (обновит, если уже есть; создаст, если нет)
+  const { error } = await supabase.from('rentals').upsert([
     { site_key, totp_secret, expires_at, is_active: true }
-  ]);
+  ], { onConflict: 'site_key' });
 
   if (error) return res.status(500).json({ error: error.message });
   return res.status(200).json({ success: true });
