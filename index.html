@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Код | ChatGPT Rent</title>
+    <style>
+        body { background: #000; color: #fff; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .container { max-width: 400px; width: 100%; padding: 20px; }
+        h1 { font-size: 2rem; margin-bottom: 20px; }
+        input { width: 80%; padding: 12px; font-size: 18px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
+        button { padding: 12px 30px; font-size: 18px; background: #fff; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 85%; }
+        #code-display { font-size: 4rem; margin-top: 30px; letter-spacing: 8px; font-weight: bold; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
+        #error { color: #ff4444; margin-top: 20px; }
+        #timer { font-size: 1.2rem; color: #aaa; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Получить 2FA Код</h1>
+        <input type="text" id="siteKeyInput" placeholder="Введите site_key">
+        <br>
+        <button onclick="fetchCode()">Получить код</button>
+        
+        <div id="code-display">------</div>
+        <div id="timer"></div>
+        <div id="error"></div>
+    </div>
 
+    <script>
+        let timerInterval;
+
+        async function fetchCode() {
+            const key = document.getElementById('siteKeyInput').value.trim().toUpperCase();
+            const codeDisplay = document.getElementById('code-display');
+            const errorDisplay = document.getElementById('error');
+            const timerDisplay = document.getElementById('timer');
+
+            if (!key) {
+                errorDisplay.innerText = "Введите ключ доступа!";
+                return;
+            }
+
+            errorDisplay.innerText = "";
+            codeDisplay.innerText = "...";
+            timerDisplay.innerText = "";
+            clearInterval(timerInterval);
+
+            try {
+                const response = await fetch(`/api/get_code?site_key=${key}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    codeDisplay.innerText = data.code;
+                    // Запускаем таймер на 30 секунд для удобства
+                    let timeLeft = 30;
+                    timerDisplay.innerText = `Обновится через ${timeLeft}с`;
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        timerDisplay.innerText = `Обновится через ${timeLeft}с`;
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            timerDisplay.innerText = "Нажмите 'Получить код' снова";
+                        }
+                    }, 1000);
+                } else {
+                    codeDisplay.innerText = "------";
+                    errorDisplay.innerText = data.error || "Ошибка сервера";
+                }
+            } catch (err) {
+                codeDisplay.innerText = "------";
+                errorDisplay.innerText = "Ошибка соединения с сервером.";
+            }
+        }
+    </script>
+</body>
+</html>
