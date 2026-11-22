@@ -3,75 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2FA Код | ChatGPT Rent</title>
+    <title>2FA Код | Премиум доступ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #000; color: #fff; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .container { max-width: 400px; width: 100%; padding: 20px; }
-        h1 { font-size: 2rem; margin-bottom: 20px; }
-        input { width: 80%; padding: 12px; font-size: 18px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
-        button { padding: 12px 30px; font-size: 18px; background: #fff; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 85%; }
-        #code-display { font-size: 4rem; margin-top: 30px; letter-spacing: 8px; font-weight: bold; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
-        #error { color: #ff4444; margin-top: 20px; }
-        #timer { font-size: 1.2rem; color: #aaa; margin-top: 10px; }
+        :root {
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1.1rem;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        }
+
+        button.primary-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        button.primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+        }
+
+        button.primary-btn:active {
+            transform: translateY(0);
+        }
+
+        button.primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .code-area {
+            margin-top: 30px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #code-display {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: 8px;
+            color: var(--text);
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+            transition: opacity 0.3s ease;
+            margin-bottom: 10px;
+            font-variant-numeric: tabular-nums; /* Чтобы цифры не прыгали */
+        }
+
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--accent);
+            transition: width 1s linear;
+        }
+
+        #timer-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #error {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        /* Анимация загрузки (спиннер) */
+        .loader {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Утилиты */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔐 Получить 2FA Код</h1>
-        <input type="text" id="siteKeyInput" placeholder="Введите site_key">
-        <br>
-        <button onclick="fetchCode()">Получить код</button>
+
+    <div class="card">
+        <h1>2FA Доступ</h1>
+        <p class="subtitle">Введите ключ, выданный при покупке</p>
+
+        <div class="input-group">
+            <input type="text" id="siteKeyInput" placeholder="НАПРИМЕР: TEST1234" autocomplete="off">
+        </div>
+
+        <button class="primary-btn" id="getCodeBtn" onclick="fetchCode()">Получить код</button>
         
-        <div id="code-display">------</div>
-        <div id="timer"></div>
+        <div class="loader" id="loader"></div>
+
+        <div class="code-area">
+            <div id="code-display" class="hidden">------</div>
+            
+            <div id="timer-wrapper" class="hidden" style="width: 100%;">
+                <div class="timer-container">
+                    <div id="timer-bar"></div>
+                </div>
+                <div id="timer-text">Обновится через 30с</div>
+            </div>
+            
+            <button class="copy-btn" id="copyBtn" onclick="copyCode()">📋 Скопировать</button>
+        </div>
+
         <div id="error"></div>
     </div>
 
     <script>
         let timerInterval;
+        // Кеш для быстрого ответа (если нажать дважды за 30 сек)
+        let cachedCode = null;
+        let cacheKey = "";
+        let cacheExpiry = 0;
 
         async function fetchCode() {
-            const key = document.getElementById('siteKeyInput').value.trim().toUpperCase();
+            const keyInput = document.getElementById('siteKeyInput');
+            const key = keyInput.value.trim().toUpperCase();
+            
+            const btn = document.getElementById('getCodeBtn');
+            const loader = document.getElementById('loader');
             const codeDisplay = document.getElementById('code-display');
+            const timerWrapper = document.getElementById('timer-wrapper');
+            const copyBtn = document.getElementById('copyBtn');
             const errorDisplay = document.getElementById('error');
-            const timerDisplay = document.getElementById('timer');
 
             if (!key) {
-                errorDisplay.innerText = "Введите ключ доступа!";
+                showError("Пожалуйста, введите ключ!");
                 return;
             }
 
             errorDisplay.innerText = "";
-            codeDisplay.innerText = "...";
-            timerDisplay.innerText = "";
             clearInterval(timerInterval);
 
+            // --- ЛОГИКА КЕШИРОВАНИЯ (Мгновенная выдача) ---
+            const now = Date.now();
+            if (cachedCode && cacheKey === key && now < cacheExpiry) {
+                // Если код уже есть в памяти и время не вышло, показываем мгновенно
+                displayCode(cachedCode, cacheExpiry - now);
+                return;
+            }
+
+            // --- ПОКАЗЫВАЕМ ЗАГРУЗКУ ---
+            btn.disabled = true;
+            btn.innerText = "Загрузка...";
+            loader.style.display = "block";
+            codeDisplay.classList.add("hidden");
+            timerWrapper.classList.add("hidden");
+            copyBtn.style.display = "none";
+
             try {
-                const response = await fetch(`/api/get_code?site_key=${key}`);
+                // Добавляем параметр t (время), чтобы браузер не кешировал запрос
+                const response = await fetch(`/api/get_code?site_key=${key}&t=${now}`);
                 const data = await response.json();
 
                 if (response.ok) {
-                    codeDisplay.innerText = data.code;
-                    // Запускаем таймер на 30 секунд для удобства
-                    let timeLeft = 30;
-                    timerDisplay.innerText = `Обновится через ${timeLeft}с`;
-                    timerInterval = setInterval(() => {
-                        timeLeft--;
-                        timerDisplay.innerText = `Обновится через ${timeLeft}с`;
-                        if (timeLeft <= 0) {
-                            clearInterval(timerInterval);
-                            timerDisplay.innerText = "Нажмите 'Получить код' снова";
-                        }
-                    }, 1000);
+                    const nowSec = Math.floor(Date.now() / 1000);
+                    const timeLeftMs = (30 - (nowSec % 30)) * 1000; // Реальное оставшееся время в мс
+                    
+                    // Сохраняем в кеш
+                    cachedCode = data.code;
+                    cacheKey = key;
+                    cacheExpiry = Date.now() + timeLeftMs;
+
+                    displayCode(data.code, timeLeftMs);
                 } else {
+                    showError(data.error || "Ошибка сервера");
                     codeDisplay.innerText = "------";
-                    errorDisplay.innerText = data.error || "Ошибка сервера";
+                    codeDisplay.classList.remove("hidden");
                 }
             } catch (err) {
+                showError("Ошибка соединения с сервером.");
                 codeDisplay.innerText = "------";
-                errorDisplay.innerText = "Ошибка соединения с сервером.";
+                codeDisplay.classList.remove("hidden");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Получить код";
+                loader.style.display = "none";
             }
         }
+
+        function displayCode(code, timeLeftMs) {
+            const codeDisplay = document.getElementById('code-display');
+            const timerWrapper = document.getElementById('timer-wrapper');
+            const timerBar = document.getElementById('timer-bar');
+            const timerText = document.getElementById('timer-text');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // Сброс и показ
+            codeDisplay.innerText = code;
+            codeDisplay.classList.remove("hidden");
+            timerWrapper.classList.remove("hidden");
+            copyBtn.style.display = "inline-block";
+            document.getElementById('error').innerText = "";
+
+            // Настройка таймера
+            let timeLeftSec = Math.ceil(timeLeftMs / 1000);
+            timerText.innerText = `Обновится через ${timeLeftSec}с`;
+            timerBar.style.width = `${(timeLeftSec / 30) * 100}%`;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeftSec--;
+                if (timeLeftSec <= 0) {
+                    clearInterval(timerInterval);
+                    timerText.innerText = "Код устарел. Нажмите снова.";
+                    timerBar.style.width = "0%";
+                    cachedCode = null; // Сбрасываем кеш
+                } else {
+                    timerText.innerText = `Обновится через ${timeLeftSec}с`;
+                    timerBar.style.width = `${(timeLeftSec / 30) * 100}%`;
+                }
+            }, 1000);
+        }
+
+        function showError(msg) {
+            document.getElementById('error').innerText = msg;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('code-display').innerText;
+            if (code && code !== "------") {
+                navigator.clipboard.writeText(code).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    btn.innerText = "✅ Скопировано!";
+                    setTimeout(() => { btn.innerText = "📋 Скопировать"; }, 2000);
+                });
+            }
+        }
+
+        // Автоматическая загрузка, если ключ передан в URL (например, ?key=TEST1234)
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyParam = urlParams.get('key');
+            if (keyParam) {
+                document.getElementById('siteKeyInput').value = keyParam;
+                fetchCode();
+            }
+        };
     </script>
 </body>
 </html>
